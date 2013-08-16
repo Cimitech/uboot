@@ -42,6 +42,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define CONFIG_SYS_MONITOR_LEN	(200 * 1024)
 #endif
 
+
+
 u32 *boot_params_ptr = NULL;
 struct spl_image_info spl_image;
 
@@ -238,7 +240,9 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	default:
 		debug("Unsupported OS image.. Jumping nevertheless..\n");
 	}
+    serial_puts("jump_to_image_no_args before\n");
 	jump_to_image_no_args(&spl_image);
+    serial_puts("jump_to_image_no_args after\n");
 }
 
 /*

@@ -77,12 +77,14 @@ void spl_nand_load_image(void)
 	}
 #endif
 #ifdef CONFIG_NAND_ENV_DST
+    serial_puts("##LOAD ENV with nand_spl_load_image:\n");
 	nand_spl_load_image(CONFIG_ENV_OFFSET,
 		CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
 	spl_parse_image_header(header);
 	nand_spl_load_image(CONFIG_ENV_OFFSET, spl_image.size,
 		(void *)spl_image.load_addr);
 #ifdef CONFIG_ENV_OFFSET_REDUND
+    serial_puts("##LOAD REDUND with nand_spl_load_image:\n");
 	nand_spl_load_image(CONFIG_ENV_OFFSET_REDUND,
 		CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
 	spl_parse_image_header(header);
@@ -93,7 +95,10 @@ void spl_nand_load_image(void)
 	/* Load u-boot */
 	nand_spl_load_image(CONFIG_SYS_NAND_U_BOOT_OFFS,
 		CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
+
 	spl_parse_image_header(header);
+
+
 	nand_spl_load_image(CONFIG_SYS_NAND_U_BOOT_OFFS,
 		spl_image.size, (void *)spl_image.load_addr);
 	nand_deselect();
