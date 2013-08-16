@@ -3211,7 +3211,8 @@ int nand_scan_tail(struct mtd_info *mtd)
 		if (mtd->writesize >= chip->ecc.size) {
 			if (!chip->ecc.strength) {
 				pr_warn("Driver must set ecc.strength when using hardware ECC\n");
-				BUG();
+				serial_puts("Driver must set ecc.strength when using hardware ECC\n");
+				//BUG();
 			}
 			break;
 		}
