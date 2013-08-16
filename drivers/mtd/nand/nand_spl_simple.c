@@ -39,9 +39,11 @@ static struct nand_chip nand_chip;
 static int nand_command(int block, int page, uint32_t offs,
 	u8 cmd)
 {
+    
 	struct nand_chip *this = mtd.priv;
 	int page_addr = page + block * CONFIG_SYS_NAND_PAGE_COUNT;
-
+    
+    serial_puts("nand_command\n");
 	while (!this->dev_ready(&mtd))
 		;
 
@@ -128,6 +130,7 @@ static int nand_command(int block, int page, uint32_t offs,
 static int nand_is_bad_block(int block)
 {
 	struct nand_chip *this = mtd.priv;
+//    return 0;
 
 	nand_command(block, 0, CONFIG_SYS_NAND_BAD_BLOCK_POS,
 		NAND_CMD_READOOB);
@@ -189,7 +192,7 @@ static int nand_read_page(int block, int page, void *dst)
 	int eccbytes = CONFIG_SYS_NAND_ECCBYTES;
 	int eccsteps = ECCSTEPS;
 	uint8_t *p = dst;
-
+    serial_puts("\t\t nand_read_page start\n");
 	nand_command(block, page, 0, NAND_CMD_READ0);
 
 	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
@@ -219,10 +222,54 @@ static int nand_read_page(int block, int page, void *dst)
 }
 #endif
 
+
+#if 1
+/*
+void write_hex (unsigned char i)
+{
+    char cc; 
+
+    cc = i >> 4;
+    cc &= 0xf;
+    if (cc > 9)
+        serial_putc (cc + 55);
+    else
+        serial_putc (cc + 48);
+    cc = i & 0xf;
+    if (cc > 9)
+        serial_putc (cc + 55);
+    else
+        serial_putc (cc + 48);
+}
+*/
+void write_4hex (unsigned long val)
+{
+    write_hex ((unsigned char) (val >> 24));
+    write_hex ((unsigned char) (val >> 16));
+    write_hex ((unsigned char) (val >> 8));
+    write_hex ((unsigned char) val);
+}
+#endif
+
 int nand_spl_load_image(uint32_t offs, unsigned int size, void *dst)
 {
 	unsigned int block, lastblock;
 	unsigned int page;
+    serial_puts("start nand_spl_load_image\n");
+    serial_puts("\t offs:"); write_4hex( offs);
+    serial_puts("\t size:"); write_4hex( size);
+    serial_putc('\n');
+    
+#if 0
+    serial_puts("##TRY TO REAS PAGE 0>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>y\n");
+    nand_read_page(0, 0, (uchar *) CONFIG_SYS_TEXT_BASE);
+    int j= 0;
+    for (j = 0; j<=40; j++){
+        write_hex((CONFIG_SYS_TEXT_BASE + j));
+    }   
+    serial_puts("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<##TRIED TO READ PAGE 0\n");
+#endif
+    
 
 	/*
 	 * offs has to be aligned to a page address!
@@ -244,6 +291,7 @@ int nand_spl_load_image(uint32_t offs, unsigned int size, void *dst)
 
 			page = 0;
 		} else {
+            serial_puts("skipping bad block during image load: "); write_hex(block); serial_putc('\n');
 			lastblock++;
 		}
 

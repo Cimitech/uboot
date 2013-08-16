@@ -39,6 +39,7 @@ COBJS-$(CONFIG_SPL_NAND_SIMPLE) += nand_spl_simple.o
 COBJS-$(CONFIG_SPL_NAND_LOAD) += nand_spl_load.o
 COBJS-$(CONFIG_SPL_NAND_ECC) += nand_ecc.o
 COBJS-$(CONFIG_SPL_NAND_BASE) += nand_base.o
+#COBJS-$(CONFIG_NAND_S3C24XX) += s3c24xx_nand.o
 
 else # not spl
 
@@ -58,6 +59,7 @@ ifdef NORMAL_DRIVERS
 COBJS-$(CONFIG_NAND_ECC_BCH) += nand_bch.o
 
 COBJS-$(CONFIG_NAND_ATMEL) += atmel_nand.o
+COBJS-$(CONFIG_NAND_S3C24XX) += s3c24xx_nand.o
 COBJS-$(CONFIG_DRIVER_NAND_BFIN) += bfin_nand.o
 COBJS-$(CONFIG_NAND_DAVINCI) += davinci_nand.o
 COBJS-$(CONFIG_NAND_FSL_ELBC) += fsl_elbc_nand.o
@@ -85,6 +87,7 @@ else  # minimal SPL drivers
 COBJS-$(CONFIG_NAND_FSL_ELBC) += fsl_elbc_spl.o
 COBJS-$(CONFIG_NAND_FSL_IFC) += fsl_ifc_spl.o
 COBJS-$(CONFIG_NAND_MXC) += mxc_nand_spl.o
+#COBJS-$(CONFIG_NAND_S3C24XX) += s3c24xx_nand.o
 
 endif # drivers
 endif # nand
