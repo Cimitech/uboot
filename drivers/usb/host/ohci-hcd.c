@@ -66,6 +66,7 @@
 
 #if defined(CONFIG_ARM920T) || \
     defined(CONFIG_S3C24X0) || \
+    defined(CONFIG_S3C24XX) || \
     defined(CONFIG_440EP) || \
     defined(CONFIG_PCI_OHCI) || \
     defined(CONFIG_MPC5200) || \
@@ -74,9 +75,9 @@
 #endif
 
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
-#undef DEBUG
-#undef SHOW_INFO
-#undef OHCI_FILL_TRACE
+#define DEBUG
+#define SHOW_INFO
+#define OHCI_FILL_TRACE
 
 /* For initializing controller (mask in an HCFS mode too) */
 #define OHCI_CONTROL_INIT \
