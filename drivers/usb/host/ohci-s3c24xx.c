@@ -36,17 +36,24 @@
 #include <common.h>
 /* #include <pci.h> no PCI on the S3C24X0 */
 
-#if defined(CONFIG_USB_OHCI) && defined(CONFIG_S3C24X0)
+//#if defined(CONFIG_USB_OHCI) && defined(CONFIG_S3C24X0)
 
-#include <asm/arch/s3c24x0_cpu.h>
+/////#include <asm/arch/s3c24x0_cpu.h>
+#include <asm/arch/s3c24xx_cpu.h>
 #include <asm/io.h>
 #include <malloc.h>
 #include <usb.h>
-#include "ohci-s3c24xx.h"
+/*
+ *#include "ohci-s3c24xx.h"
+ */
 
 #define OHCI_USE_NPS		/* force NoPowerSwitching mode */
-#undef OHCI_VERBOSE_DEBUG	/* not always helpful */
+#define OHCI_VERBOSE_DEBUG	/* not always helpful */
 
+/*
+ *#if defined(CONFIG_USB_OHCI) && defined(CONFIG_S3C24XX)
+ */
+#if 0
 
 /* For initializing controller (mask in an HCFS mode too) */
 #define	OHCI_CONTROL_INIT \
@@ -56,13 +63,16 @@
 	({ type __x = (x); type __y = (y); __x < __y ? __x : __y; })
 
 #undef DEBUG
+
+#define DEBUG
+
 #ifdef DEBUG
 #define dbg(format, arg...) printf("DEBUG: " format "\n", ## arg)
 #else
 #define dbg(format, arg...) do {} while(0)
 #endif /* DEBUG */
 #define err(format, arg...) printf("ERROR: " format "\n", ## arg)
-#undef SHOW_INFO
+#define SHOW_INFO
 #ifdef SHOW_INFO
 #define info(format, arg...) printf("INFO: " format "\n", ## arg)
 #else
@@ -221,7 +231,7 @@ void ep_print_int_eds(struct ohci *ohci, char *str)
 
 static void ohci_dump_intr_mask(char *label, __u32 mask)
 {
-	dbg("%s: 0x%08x%s%s%s%s%s%s%s%s%s",
+	dbg(" ohci_dump_intr_mask : %s: 0x%08x%s%s%s%s%s%s%s%s%s",
 	    label,
 	    mask,
 	    (mask & OHCI_INTR_MIE) ? " MIE" : "",
@@ -274,7 +284,7 @@ static void ohci_dump_status(struct ohci *controller)
 		dbg("spec %d.%d", (temp >> 4), (temp & 0x0f));
 
 	temp = readl(&regs->control);
-	dbg("control: 0x%08x%s%s%s HCFS=%s%s%s%s%s CBSR=%d", temp,
+	dbg(" ohci_dump_status control: 0x%08x%s%s%s HCFS=%s%s%s%s%s CBSR=%d", temp,
 	    (temp & OHCI_CTRL_RWE) ? " RWE" : "",
 	    (temp & OHCI_CTRL_RWC) ? " RWC" : "",
 	    (temp & OHCI_CTRL_IR) ? " IR" : "",
@@ -285,7 +295,7 @@ static void ohci_dump_status(struct ohci *controller)
 	    (temp & OHCI_CTRL_PLE) ? " PLE" : "", temp & OHCI_CTRL_CBSR);
 
 	temp = readl(&regs->cmdstatus);
-	dbg("cmdstatus: 0x%08x SOC=%d%s%s%s%s", temp,
+	dbg("ohci_dump_status cmdstatus: 0x%08x SOC=%d%s%s%s%s", temp,
 	    (temp & OHCI_SOC) >> 16,
 	    (temp & OHCI_OCR) ? " OCR" : "",
 	    (temp & OHCI_BLF) ? " BLF" : "",
@@ -1324,7 +1334,7 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	if (usb_pipebulk(pipe))
 		timeout = BULK_TO;
 	else
-		timeout = 100;
+		timeout = 200;
 
 	/* wait for it to complete */
 	for (;;) {
@@ -1393,7 +1403,7 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	dev->act_len = transfer_len;
 
 #ifdef DEBUG
-	pkt_print(dev, pipe, buffer, transfer_len, setup, "RET(ctlr)",
+        pkt_print(dev, pipe, buffer, transfer_len, setup, "RET(ctlr)",
 		  usb_pipein(pipe));
 #else
 	mdelay(1);
@@ -1537,7 +1547,10 @@ static int hc_start(struct ohci *ohci)
 	mask = OHCI_INTR_RHSC | OHCI_INTR_UE | OHCI_INTR_WDH | OHCI_INTR_SO;
 	writel(mask, &ohci->regs->intrenable);
 
+//#define OHCI_USE_NPS		/* force NoPowerSwitching mode */
 #ifdef	OHCI_USE_NPS
+#pragma message ( ">>>>>>>>>>>>>>>>>>> OHCI_USE_NPS" )
+    printf(">>>>>>>>>>>>>>>< OHCI_USE_NPS\n");
 	/* required for AMD-756 and some Mac platforms */
 	writel((roothub_a(ohci) | RH_A_NPS) & ~RH_A_PSM,
 	       &ohci->regs->roothub.a);
@@ -1583,8 +1596,8 @@ static int hc_interrupt(void)
 		}
 	}
 
-	/* dbg("Interrupt: %x frame: %x", ints,
-	    le16_to_cpu(ohci->hcca->frame_no)); */
+	 dbg("Interrupt: %x frame: %x", ints,
+	    le16_to_cpu(ohci->hcca->frame_no));
 
 	if (ints & OHCI_INTR_RHSC) {
 		got_rhsc = 1;
@@ -1598,7 +1611,9 @@ static int hc_interrupt(void)
 		/* e.g. due to PCI Master/Target Abort */
 
 #ifdef	DEBUG
+        dbg("vvvvvvvvvvvvvvvvv dump\n");
 		ohci_dump(ohci, 1);
+        dbg("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ dump\n");
 #else
 		mdelay(1);
 #endif
@@ -1635,6 +1650,7 @@ static int hc_interrupt(void)
 	}
 
 	writel(ints, &regs->intrstatus);
+    dbg("returning stat:%d\n", stat);
 	return stat;
 }
 
@@ -1662,8 +1678,10 @@ static char ohci_inited = 0;
 int usb_lowlevel_init(int index, void **controller)
 {
 	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
-	struct s3c24x0_gpio *gpio = s3c24x0_get_base_gpio();
+	struct s3c24xx_gpio *gpio = s3c24xx_get_base_gpio();
 
+    printf (">>>>>>>>>>> lowlevel_init gpio base: %x\n", gpio);
+    printf (">>>>>>>>>>> lowlevel_init clock power  base: %x\n", clk_power);
 	/*
 	 * Set the 48 MHz UPLL clocking. Values are taken from
 	 * "PLL value selection guide", 6-23, s3c2400_UM.pdf.
@@ -1696,14 +1714,14 @@ int usb_lowlevel_init(int index, void **controller)
 		err("TDs not aligned!!");
 		return -1;
 	}
-	ptd = gtd;
+            ptd = gtd;
 	gohci.hcca = phcca;
 	memset(phcca, 0, sizeof(struct ohci_hcca));
 
 	gohci.disabled = 1;
 	gohci.sleeping = 0;
 	gohci.irq = -1;
-	gohci.regs = (struct ohci_regs *)S3C24X0_USB_HOST_BASE;
+	gohci.regs = (struct ohci_regs *)S3C24XX_USB_HOST_BASE;
 
 	gohci.flags = 0;
 	gohci.slot_name = "s3c2400";
@@ -1748,7 +1766,7 @@ int usb_lowlevel_stop(int index)
 		return 0;
 	/* TODO release any interrupts, etc. */
 	/* call hc_release_ohci() here ? */
-	hc_reset(&gohci);
+        hc_reset(&gohci);
 	/* may not want to do this */
 	clk_power->clkcon &= ~(1 << 4);
 	return 0;
@@ -1758,13 +1776,20 @@ int usb_lowlevel_stop(int index)
 
 #if defined(CONFIG_USB_OHCI_NEW) && \
     defined(CONFIG_SYS_USB_OHCI_CPU_INIT) && \
-    defined(CONFIG_S3C24X0)
+    defined(CONFIG_S3C24XX)
+//    defined(CONFIG_S3C24X0)
 
 int usb_cpu_init(void)
 {
+    /*
+	 *struct s3c24x0_gpio *gpio = s3c24x0_get_base_gpio();
+	 *struct s3c24x0_gpio *gpio = s3c24x0_get_base_gpio();
+     */
+	struct s3c24xx_gpio *gpio = s3c24xx_get_base_gpio();
 	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
-	struct s3c24x0_gpio *gpio = s3c24x0_get_base_gpio();
-
+    printf (">>>>>>>>>>> cpu_init gpio base: %x, gpio misccr addr: %x\n", gpio,
+                                                                    &gpio->misccr);
+    printf (">>>>>>>>>>> cpu_init clock power  base: %x\n", clk_power);
 	/*
 	 * Set the 48 MHz UPLL clocking. Values are taken from
 	 * "PLL value selection guide", 6-23, s3c2400_UM.pdf.
@@ -1797,5 +1822,5 @@ int usb_cpu_init_fail(void)
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) && \
-	   defined(CONFIG_SYS_USB_OHCI_CPU_INIT) && \
+	   :defined(CONFIG_SYS_USB_OHCI_CPU_INIT) && \
 	   defined(CONFIG_S3C24X0) */

@@ -54,6 +54,9 @@ struct s3c24xx_dramctl {
 	u32 refresh;
 	u32 timeout;
 };
+#define ELFIN_CLOCK_POWER_BASE  0x4c000000
+#define ELFIN_UPLLCON (ELFIN_CLOCK_POWER_BASE + 0x8)
+
 
 #define BANKCFG_VAL_DDR2		0x00049253
 
@@ -243,6 +246,21 @@ struct s3c24xx_timers {
 	u32 tcntb4;
 	u32 tcnto4;
 };
+
+
+
+struct s3c24x0_clock_power {
+     u32 locktime;
+     u32 mpllcon;
+     u32 upllcon;
+     u32 clkcon;
+     u32 clkslow;
+     u32 clkdivn;
+ #if defined(CONFIG_S3C2440)
+     u32 camdivn;
+ #endif 
+ };
+
 
 #define TCFG0_PRESCALER1_MASK	(0xFF<<8)
 #define TCFG0_PRESCALER1(x)	((x)<<8)
@@ -609,6 +627,13 @@ static inline char *s3c24xx_get_cpu_name(void)
 {
 	return S3C24XX_CPU_NAME;
 }
+
+
+static inline struct s3c24x0_clock_power *s3c24x0_get_base_clock_power(void)
+{
+    return (struct s3c24x0_clock_power *)ELFIN_CLOCK_POWER_BASE;
+}
+
 
 extern ulong get_ARMCLK(void);
 
